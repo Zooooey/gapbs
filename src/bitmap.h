@@ -37,7 +37,7 @@ class Bitmap {
   }
 
   void set_bit(size_t pos) {
-    printf("%p, W, Bitmap\n",&next);
+    printf("%p, W, Bitmap\n",this);
     start_[word_offset(pos)] |= ((uint64_t) 1l << bit_offset(pos));
   }
 
