@@ -53,7 +53,7 @@ int64_t BUStep(const Graph &g, pvector<NodeID> &parent, Bitmap &front,
     //如果<0，说明没被遍历
     if (parent[u] < 0) {
       printf("%p, R, NodeID\n",&u);
-      printf("%p, R, parent\n",&parent[u]);
+      printf("%p, R, parent\n",&parent+u);
       //in_neigh是符合某种逻辑的邻居节点
       for (NodeID v : g.in_neigh(u)) {
         printf("%p, R, NodeID\n",&v);
@@ -61,7 +61,7 @@ int64_t BUStep(const Graph &g, pvector<NodeID> &parent, Bitmap &front,
           //完成前序节点的遍历？
           //ccy:读取前序节点，写入parent[u]
           parent[u] = v;
-          printf("%p, W, parent\n",&parent[u]);
+          printf("%p, W, parent\n",&parent+u);
           awake_count++;
           next.set_bit(u);
           break;
@@ -90,7 +90,7 @@ int64_t TDStep(const Graph &g, pvector<NodeID> &parent,
         printf("%p, R, NodeID\n",&v);
         //ccy:parent被读取，这里是为了获取邻居点v的出度
         NodeID curr_val = parent[v];
-        printf("%p, R, parent\n",&n);
+        printf("%p, R, parent\n",parent[v]);
         if (curr_val < 0) {
           //修改parent，标明该点已经被遍历（未被遍历是负数，遍历后是该点的值？）
           if (compare_and_swap(parent[v], curr_val, u)) {
@@ -141,7 +141,7 @@ pvector<NodeID> InitParent(const Graph &g) {
   #pragma omp parallel for
   for (NodeID n=0; n < g.num_nodes(); n++){
       parent[n] = g.out_degree(n) != 0 ? -g.out_degree(n) : -1;
-      printf("%p, W, parent, %d\n",&parent[n],n);
+      printf("%p, W, parent\n",&parent+n);
     }
   return parent;
 }
@@ -158,7 +158,7 @@ pvector<NodeID> DOBFS(const Graph &g, NodeID source, int alpha = 15,
   //这个source就是bfs的起点，是随机传进来的。
   printf("%p, R, NodeID\n",&source);
   parent[source] = source;
-  printf("%p, W, parent\n",&parent[source]);
+  printf("%p, W, parent\n",&parent+source);
   //这个滑动队列
   SlidingQueue<NodeID> queue(g.num_nodes());
   //先把这个根节点push到queue里
@@ -207,9 +207,9 @@ pvector<NodeID> DOBFS(const Graph &g, NodeID source, int alpha = 15,
   }
   #pragma omp parallel for
   for (NodeID n = 0; n < g.num_nodes(); n++){
-    printf("%p, R, parent\n",&parent[n]);
+    printf("%p, R, parent\n",&parent+n);
     if (parent[n] < -1){
-      printf("%p, W, parent\n",&parent[n]);
+      printf("%p, W, parent\n",&parent+n);
       parent[n] = -1;
     }
   }
