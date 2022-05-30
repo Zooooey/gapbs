@@ -42,7 +42,7 @@ class Bitmap {
   }
 
   void set_bit_atomic(size_t pos) {
-    printf("%p, W, Bitmap\n",&this);
+    printf("%p, W, Bitmap\n",this);
     uint64_t old_val, new_val;
     do {
       old_val = start_[word_offset(pos)];
@@ -51,7 +51,7 @@ class Bitmap {
   }
 
   bool get_bit(size_t pos) const {
-    printf("%p, R, Bitmap\n",&this);
+    printf("%p, R, Bitmap\n",this);
     return (start_[word_offset(pos)] >> bit_offset(pos)) & 1l;
   }
 
