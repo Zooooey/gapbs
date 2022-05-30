@@ -52,16 +52,16 @@ int64_t BUStep(const Graph &g, pvector<NodeID> &parent, Bitmap &front,
   for (NodeID u=0; u < g.num_nodes(); u++) {
     //如果<0，说明没被遍历
     if (parent[u] < 0) {
-      printf("%p, R, NodeID\n",&u);
-      printf("%p, R, parent\n",&parent+u);
+      //printf("%p, R, NodeID\n",&u);
+      //printf("%p, R, parent\n",&parent+u);
       //in_neigh是符合某种逻辑的邻居节点
       for (NodeID v : g.in_neigh(u)) {
-        printf("%p, R, NodeID\n",&v);
+        //printf("%p, R, NodeID\n",&v);
         if (front.get_bit(v)) {
           //完成前序节点的遍历？
           //ccy:读取前序节点，写入parent[u]
           parent[u] = v;
-          printf("%p, W, parent\n",&parent+u);
+          //printf("%p, W, parent\n",&parent+u);
           awake_count++;
           next.set_bit(u);
           break;
@@ -81,16 +81,16 @@ int64_t TDStep(const Graph &g, pvector<NodeID> &parent,
     QueueBuffer<NodeID> lqueue(queue);
     #pragma omp for reduction(+ : scout_count) nowait
     for (auto q_iter = queue.begin(); q_iter < queue.end(); q_iter++) {
-      printf("%p, R, queue\n",&q_iter);
+      //printf("%p, R, queue\n",&q_iter);
       //ccy:读取点id
       NodeID u = *q_iter;
-      printf("%p, R, NodeID\n",&u);
+      //printf("%p, R, NodeID\n",&u);
       //ccy:遍历该点所有的邻居，也就是读取这些邻居点。
       for (NodeID v : g.out_neigh(u)) {
-        printf("%p, R, NodeID\n",&v);
+        //printf("%p, R, NodeID\n",&v);
         //ccy:parent被读取，这里是为了获取邻居点v的出度
         NodeID curr_val = parent[v];
-        printf("%p, R, parent\n",parent[v]);
+        //printf("%p, R, parent\n",parent[v]);
         if (curr_val < 0) {
           //修改parent，标明该点已经被遍历（未被遍历是负数，遍历后是该点的值？）
           if (compare_and_swap(parent[v], curr_val, u)) {
@@ -111,10 +111,10 @@ int64_t TDStep(const Graph &g, pvector<NodeID> &parent,
 void QueueToBitmap(const SlidingQueue<NodeID> &queue, Bitmap &bm) {
   #pragma omp parallel for
   for (auto q_iter = queue.begin(); q_iter < queue.end(); q_iter++) {
-    printf("%p, R, queue\n",&q_iter);
+    //printf("%p, R, queue\n",&q_iter);
     //ccy：读取点的id值
     NodeID u = *q_iter;
-    printf("%p, R, NodeID\n",&u);
+    //printf("%p, R, NodeID\n",&u);
     bm.set_bit_atomic(u);
   }
 }
@@ -126,7 +126,7 @@ void BitmapToQueue(const Graph &g, const Bitmap &bm,
     QueueBuffer<NodeID> lqueue(queue);
     #pragma omp for nowait
     for (NodeID n=0; n < g.num_nodes(); n++){
-      printf("%p, R, NodeID\n",&n);
+      //printf("%p, R, NodeID\n",&n);
       if (bm.get_bit(n)){
         lqueue.push_back(n);
       }
@@ -141,7 +141,7 @@ pvector<NodeID> InitParent(const Graph &g) {
   #pragma omp parallel for
   for (NodeID n=0; n < g.num_nodes(); n++){
       parent[n] = g.out_degree(n) != 0 ? -g.out_degree(n) : -1;
-      printf("%p, W, parent\n",&parent+n);
+      //printf("%p, W, parent\n",&parent+n);
     }
   return parent;
 }
@@ -151,18 +151,21 @@ pvector<NodeID> DOBFS(const Graph &g, NodeID source, int alpha = 15,
   PrintStep("Source", static_cast<int64_t>(source));
   Timer t;
   t.Start();
+  printf("Graph : %p\n",&g);
   //初始化node数量的pvector
   pvector<NodeID> parent = InitParent(g);
+  printf("parent start: %p\n",&parent);
+  printf("parent end: %p\n",&parent+g.num_nodes());
   t.Stop();
   PrintStep("i", t.Seconds());
   //这个source就是bfs的起点，是随机传进来的。
-  printf("%p, R, NodeID\n",&source);
+  //printf("%p, R, NodeID\n",&source);
   parent[source] = source;
-  printf("%p, W, parent\n",&parent+source);
+  //printf("%p, W, parent\n",&parent+source);
   //这个滑动队列
   SlidingQueue<NodeID> queue(g.num_nodes());
   //先把这个根节点push到queue里
-  printf("%p, R, NodeID\n",&source);
+  //printf("%p, R, NodeID\n",&source);
   queue.push_back(source);
   queue.slide_window();
   //分别建立了两个Bitmap
@@ -207,9 +210,9 @@ pvector<NodeID> DOBFS(const Graph &g, NodeID source, int alpha = 15,
   }
   #pragma omp parallel for
   for (NodeID n = 0; n < g.num_nodes(); n++){
-    printf("%p, R, parent\n",&parent+n);
+    //printf("%p, R, parent\n",&parent+n);
     if (parent[n] < -1){
-      printf("%p, W, parent\n",&parent+n);
+      //printf("%p, W, parent\n",&parent+n);
       parent[n] = -1;
     }
   }
@@ -300,3 +303,4 @@ int main(int argc, char* argv[]) {
   BenchmarkKernel(cli, g, BFSBound, PrintBFSStats, VerifierBound);
   return 0;
 }
+
