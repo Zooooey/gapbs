@@ -32,6 +32,11 @@ class pvector {
     end_capacity_ = end_size_;
   }
 
+  void printAddress(){
+    printf("pvector start address:%p\n",start_);
+    printf("pvector end address:%p\n",end_size_);
+  }
+
   pvector(size_t num_elements, T_ init_val) : pvector(num_elements) {
     fill(init_val);
   }

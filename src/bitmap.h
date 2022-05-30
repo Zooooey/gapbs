@@ -26,6 +26,9 @@ class Bitmap {
     uint64_t num_words = (size + kBitsPerWord - 1) / kBitsPerWord;
     start_ = new uint64_t[num_words];
     end_ = start_ + num_words;
+  }
+
+  void printAddress(){
     printf("Bitmap start: %p\n",start_);
     printf("Bitmap end: %p\n",end_);
   }

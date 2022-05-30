@@ -29,14 +29,19 @@ class SlidingQueue {
   size_t shared_in;
   size_t shared_out_start;
   size_t shared_out_end;
+  size_t size;
   friend class QueueBuffer<T>;
 
  public:
   explicit SlidingQueue(size_t shared_size) {
     shared = new T[shared_size];
-    printf("queue start: %p\n",&shared);
-    printf("queue end: %p\n",&shared+shared_size);
+    size = shared_size;
     reset();
+  }
+
+  void printAddress(){
+    printf("queue start: %p\n",&shared);
+    printf("queue end: %p\n",&shared+size);
   }
 
   ~SlidingQueue() {

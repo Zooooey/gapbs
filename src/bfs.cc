@@ -154,8 +154,7 @@ pvector<NodeID> DOBFS(const Graph &g, NodeID source, int alpha = 15,
   printf("Graph : %p\n",&g);
   //初始化node数量的pvector
   pvector<NodeID> parent = InitParent(g);
-  printf("parent start: %p\n",&parent);
-  printf("parent end: %p\n",&parent+g.num_nodes());
+  parent.printAddress();
   t.Stop();
   PrintStep("i", t.Seconds());
   //这个source就是bfs的起点，是随机传进来的。
@@ -164,6 +163,7 @@ pvector<NodeID> DOBFS(const Graph &g, NodeID source, int alpha = 15,
   //printf("%p, W, parent\n",&parent+source);
   //这个滑动队列
   SlidingQueue<NodeID> queue(g.num_nodes());
+  queue.printAddress();
   //先把这个根节点push到queue里
   //printf("%p, R, NodeID\n",&source);
   queue.push_back(source);
@@ -171,8 +171,10 @@ pvector<NodeID> DOBFS(const Graph &g, NodeID source, int alpha = 15,
   //分别建立了两个Bitmap
   Bitmap curr(g.num_nodes());
   curr.reset();
+  curr.printAddress();
   Bitmap front(g.num_nodes());
   front.reset();
+  front.printAddress();
   //获得图里边的数量
   int64_t edges_to_check = g.num_edges_directed();
   //获得根节点source的出度。
