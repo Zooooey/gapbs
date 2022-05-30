@@ -76,6 +76,7 @@ class SlidingQueue {
 };
 
 
+//QueueBuffer是一个局部队列，当队列满的时候，flush操作把局部队列里的内容拷贝给全局队列，并清空局部队列。
 template <typename T>
 class QueueBuffer {
   size_t in;
@@ -101,6 +102,7 @@ class QueueBuffer {
   }
 
   void flush() {
+    //把当前local queue了的内容追加给全局的queue
     T *shared_queue = sq.shared;
     size_t copy_start = fetch_and_add(sq.shared_in, in);
     std::copy(local_queue, local_queue+in, shared_queue+copy_start);

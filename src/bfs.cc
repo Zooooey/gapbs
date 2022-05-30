@@ -48,10 +48,15 @@ int64_t BUStep(const Graph &g, pvector<NodeID> &parent, Bitmap &front,
   int64_t awake_count = 0;
   next.reset();
   #pragma omp parallel for reduction(+ : awake_count) schedule(dynamic, 1024)
+  //这里遍历整个graph？
   for (NodeID u=0; u < g.num_nodes(); u++) {
+    //如果<0，说明没被遍历
     if (parent[u] < 0) {
+      //in_neigh是符合某种逻辑的邻居节点
       for (NodeID v : g.in_neigh(u)) {
         if (front.get_bit(v)) {
+          //完成前序节点的遍历？
+          //ccy:读取前序节点，写入parent[u]
           parent[u] = v;
           awake_count++;
           next.set_bit(u);
@@ -72,12 +77,18 @@ int64_t TDStep(const Graph &g, pvector<NodeID> &parent,
     QueueBuffer<NodeID> lqueue(queue);
     #pragma omp for reduction(+ : scout_count) nowait
     for (auto q_iter = queue.begin(); q_iter < queue.end(); q_iter++) {
+      //ccy:读取点id
       NodeID u = *q_iter;
+      //ccy:遍历该点所有的邻居，也就是读取这些邻居点。
       for (NodeID v : g.out_neigh(u)) {
+        //ccy:parent被读取，这里是为了获取邻居点v的出度
         NodeID curr_val = parent[v];
         if (curr_val < 0) {
+          //修改parent，标明该点已经被遍历（未被遍历是负数，遍历后是该点的值？）
           if (compare_and_swap(parent[v], curr_val, u)) {
+            //ccy:遍历该点完成，点被访问，推入局部队列。
             lqueue.push_back(v);
+            //修改出度
             scout_count += -curr_val;
           }
         }
@@ -88,10 +99,11 @@ int64_t TDStep(const Graph &g, pvector<NodeID> &parent,
   return scout_count;
 }
 
-
+//遍历队列里的点，把这些点标记到位图里
 void QueueToBitmap(const SlidingQueue<NodeID> &queue, Bitmap &bm) {
   #pragma omp parallel for
   for (auto q_iter = queue.begin(); q_iter < queue.end(); q_iter++) {
+    //ccy：读取点的id值
     NodeID u = *q_iter;
     bm.set_bit_atomic(u);
   }
@@ -114,8 +126,10 @@ void BitmapToQueue(const Graph &g, const Bitmap &bm,
 pvector<NodeID> InitParent(const Graph &g) {
   pvector<NodeID> parent(g.num_nodes());
   #pragma omp parallel for
-  for (NodeID n=0; n < g.num_nodes(); n++)
-    parent[n] = g.out_degree(n) != 0 ? -g.out_degree(n) : -1;
+  for (NodeID n=0; n < g.num_nodes(); n++){
+      parent[n] = g.out_degree(n) != 0 ? -g.out_degree(n) : -1;
+      printf("%p, W, parent, %d\n",&parent[n],n);
+    }
   return parent;
 }
 
@@ -124,25 +138,35 @@ pvector<NodeID> DOBFS(const Graph &g, NodeID source, int alpha = 15,
   PrintStep("Source", static_cast<int64_t>(source));
   Timer t;
   t.Start();
+  //初始化node数量的pvector
   pvector<NodeID> parent = InitParent(g);
   t.Stop();
   PrintStep("i", t.Seconds());
+  //这个source就是bfs的起点，是随机传进来的。
+  printf("%p, W, parent\n");
   parent[source] = source;
+  //这个滑动队列
   SlidingQueue<NodeID> queue(g.num_nodes());
+  //先把这个根节点push到queue里
   queue.push_back(source);
   queue.slide_window();
+  //分别建立了两个Bitmap
   Bitmap curr(g.num_nodes());
   curr.reset();
   Bitmap front(g.num_nodes());
   front.reset();
+  //获得图里边的数量
   int64_t edges_to_check = g.num_edges_directed();
+  //获得根节点source的出度。
   int64_t scout_count = g.out_degree(source);
   while (!queue.empty()) {
+    //点的出度大于某个阈值
     if (scout_count > edges_to_check / alpha) {
       int64_t awake_count, old_awake_count;
       TIME_OP(t, QueueToBitmap(queue, front));
       PrintStep("e", t.Seconds());
       awake_count = queue.size();
+      //队列滑动，前面的点已经被标到位图里了
       queue.slide_window();
       do {
         t.Start();
@@ -156,8 +180,9 @@ pvector<NodeID> DOBFS(const Graph &g, NodeID source, int alpha = 15,
       TIME_OP(t, BitmapToQueue(g, front, queue));
       PrintStep("c", t.Seconds());
       scout_count = 1;
-    } else {
+    } else {//点的出度小于某个阈值
       t.Start();
+      //这个edges_to_check是汇总当前还有多少edges需要去check，减去scout_count是因为当前node的出度就是scout_count，后面要检查了，所以减去总数edges_to_check。
       edges_to_check -= scout_count;
       scout_count = TDStep(g, parent, queue);
       queue.slide_window();

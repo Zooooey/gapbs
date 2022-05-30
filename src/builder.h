@@ -317,8 +317,10 @@ class BuilderBase {
     DestID_ **index = nullptr, **inv_index = nullptr;
     DestID_ *neighs = nullptr, *inv_neighs = nullptr;
     Timer t;
+    //根据edgeList构造一个graph
     t.Start();
     if (num_nodes_ == -1)
+    //获得node的数量
       num_nodes_ = FindMaxNodeID(el)+1;
     if (needs_weights_)
       Generator<NodeID_, DestID_, WeightT_>::InsertWeights(el);

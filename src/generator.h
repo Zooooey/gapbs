@@ -114,6 +114,7 @@ class Generator {
   }
 
   EdgeList GenerateEL(bool uniform) {
+    //制作一个边列表，边列表是一个数组，每个数组元素是一条边，包含了边的起点和终点。
     EdgeList el;
     Timer t;
     t.Start();
