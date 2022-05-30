@@ -42,6 +42,7 @@ class SlidingQueue {
   }
 
   void push_back(T to_add) {
+    printf("%p, W, queue\n",&shared[shared_in]);
     shared[shared_in++] = to_add;
   }
 
@@ -98,6 +99,7 @@ class QueueBuffer {
   void push_back(T to_add) {
     if (in == local_size)
       flush();
+    printf("%p, W, queue\n",&local_queue[in]);
     local_queue[in++] = to_add;
   }
 
