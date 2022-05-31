@@ -218,10 +218,14 @@ class BuilderBase {
     if (!symmetrize_) {   // not going to symmetrize so no need to add edges
       size_t new_size = num_edges * sizeof(DestID_);
       *neighs = static_cast<DestID_*>(std::realloc(*neighs, new_size));
+      printf("neights start%p\n",*neighs);
+      printf("neights end%p\n",*neighs+new_size);
       *index = CSRGraph<NodeID_, DestID_>::GenIndex(offsets, *neighs);
       if (invert) {       // create inv_neighs & inv_index for incoming edges
         pvector<SGOffset> inoffsets = ParallelPrefixSum(indegrees);
         *inv_neighs = new DestID_[inoffsets[num_nodes_]];
+        printf("inv_neighs:%p\n",*inv_neighs);
+        printf("inv_neighs end :%p\n",*inv_neighs+inoffsets[num_nodes_]);
         *inv_index = CSRGraph<NodeID_, DestID_>::GenIndex(inoffsets,
                                                           *inv_neighs);
         for (NodeID_ u = 0; u < num_nodes_; u++) {
@@ -253,6 +257,8 @@ class BuilderBase {
       }
       size_t newsize = (offsets[num_nodes_] * sizeof(DestID_));
       *neighs = static_cast<DestID_*>(std::realloc(*neighs, newsize));
+      printf("neights start%p\n",*neighs);
+      printf("neights end%p\n",*neighs+new_size);
       if (*neighs == nullptr) {
         std::cout << "Call to realloc() failed" << std::endl;
         exit(-33);
