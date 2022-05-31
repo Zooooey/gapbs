@@ -91,6 +91,8 @@ class Generator {
     {
       std::mt19937 rng;
       std::uniform_real_distribution<float> udist(0, 1.0f);
+      printf("rng address %p\n",&rng);
+      printf("udist address %p\n",&udist);
       #pragma omp for
       for (int64_t block=0; block < num_edges_; block+=block_size) {
         rng.seed(kRandSeed + block/block_size);
@@ -110,6 +112,7 @@ class Generator {
             }
           }
           el[e] = Edge(src, dst);
+          printf("el[e] %p\n",&el[e]);
         }
       }
     }
