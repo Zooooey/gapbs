@@ -152,6 +152,7 @@ pvector<NodeID> DOBFS(const Graph &g, NodeID source, int alpha = 15,
   Timer t;
   t.Start();
   printf("Graph : %p\n",&g);
+  
   //初始化node数量的pvector
   pvector<NodeID> parent = InitParent(g);
   parent.printAddress();

@@ -1,6 +1,7 @@
 # See LICENSE.txt for license details.
 
-CXX_FLAGS += -std=c++11 -O3 -Wall
+#CXX_FLAGS += -std=c++11 -O3 -Wall
+CXX_FLAGS += -std=c++11 -O2 -Wall -g -shared-libgcc -DTBB_USE_THREADING_TOOLS
 PAR_FLAG = -fopenmp
 
 ifneq (,$(findstring icpc,$(CXX)))
