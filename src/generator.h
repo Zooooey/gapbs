@@ -51,6 +51,9 @@ class Generator {
 
   void PermuteIDs(EdgeList &el) {
     pvector<NodeID_> permutation(num_nodes_);
+    printf("pvector inside PermuteIDs start %p\n",&permutation);
+    permutation.printAddress();
+    printf("pvector inside PermuteIDs end %p\n",&permutation+num_nodes_);
     std::mt19937 rng(kRandSeed);
     #pragma omp parallel for
     for (NodeID_ n=0; n < num_nodes_; n++)
@@ -81,9 +84,9 @@ class Generator {
   EdgeList MakeRMatEL() {
     const float A = 0.57f, B = 0.19f, C = 0.19f;
     EdgeList el(num_edges_);
-    printf("EdgeList inside MakeRMatEL start");
+    printf("EdgeList inside MakeRMatEL start %p\n",&el);
     el.printAddress();
-    printf("EdgeList inside MakeRMatEL end");
+    printf("EdgeList inside MakeRMatEL end %p\n",&el+num_edges_);
     #pragma omp parallel
     {
       std::mt19937 rng;
