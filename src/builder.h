@@ -258,7 +258,7 @@ class BuilderBase {
       size_t newsize = (offsets[num_nodes_] * sizeof(DestID_));
       *neighs = static_cast<DestID_*>(std::realloc(*neighs, newsize));
       printf("neights start%p\n",*neighs);
-      printf("neights end%p\n",*neighs+new_size);
+      printf("neights end%p\n",*neighs+newsize);
       if (*neighs == nullptr) {
         std::cout << "Call to realloc() failed" << std::endl;
         exit(-33);
@@ -328,13 +328,17 @@ class BuilderBase {
     if (num_nodes_ == -1)
     //获得node的数量
       num_nodes_ = FindMaxNodeID(el)+1;
+    //needs_weights是在初始化Cli时赋值的，只有当NodeID的类型不等于DestID时才是true。因为
+    //bfs并没有显式指定任何类型，这里无论是NodeID还是DestID，用的都是int，所以need_weights判断不通过。
     if (needs_weights_)
       Generator<NodeID_, DestID_, WeightT_>::InsertWeights(el);
     if (in_place_) {
+      printf("in_place!\n");
       MakeCSRInPlace(el, &index, &neighs, &inv_index, &inv_neighs);
     } else {
       MakeCSR(el, false, &index, &neighs);
       if (!symmetrize_ && invert) {
+        printf("not symmetrize_ && invert")
         MakeCSR(el, true, &inv_index, &inv_neighs);
       }
     }
@@ -350,6 +354,7 @@ class BuilderBase {
   CSRGraph<NodeID_, DestID_, invert> MakeGraph() {
     CSRGraph<NodeID_, DestID_, invert> g;
     {  // extra scope to trigger earlier deletion of el (save memory)
+      //在栈上分配一个新的el对象，这个EdgeList本质上是一个pvector<Edge>
       EdgeList el;
       if (cli_.filename() != "") {
         Reader<NodeID_, DestID_, WeightT_, invert> r(cli_.filename());
@@ -359,10 +364,12 @@ class BuilderBase {
           el = r.ReadFile(needs_weights_);
         }
       } else if (cli_.scale() != -1) {
+        //这里只是初始化一个generator，记录我们构造图的一些基本信息，例如scale和degree。
         Generator<NodeID_, DestID_> gen(cli_.scale(), cli_.degree());
         el = gen.GenerateEL(cli_.uniform());
       }
       g = MakeGraphFromEL(el);
+      //这个el是栈上分配的，并且这里是一个scope，所以el会被释放。
     }
     if (in_place_)
       return g;
