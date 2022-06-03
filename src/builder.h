@@ -330,15 +330,18 @@ class BuilderBase {
       num_nodes_ = FindMaxNodeID(el)+1;
     //needs_weights是在初始化Cli时赋值的，只有当NodeID的类型不等于DestID时才是true。因为
     //bfs并没有显式指定任何类型，这里无论是NodeID还是DestID，用的都是int，所以need_weights判断不通过。
-    if (needs_weights_)
+    if (needs_weights_){
+      printf("needs_weights");
       Generator<NodeID_, DestID_, WeightT_>::InsertWeights(el);
+    }
     if (in_place_) {
       printf("in_place!\n");
       MakeCSRInPlace(el, &index, &neighs, &inv_index, &inv_neighs);
     } else {
+      printf("no in_place!\n");
       MakeCSR(el, false, &index, &neighs);
       if (!symmetrize_ && invert) {
-        printf("not symmetrize_ && invert")
+        printf("not symmetrize_ && invert\n");
         MakeCSR(el, true, &inv_index, &inv_neighs);
       }
     }
