@@ -104,6 +104,7 @@ class CSRGraph {
   class Neighborhood {
     NodeID_ n_;
     DestID_** g_index_;
+    //bfs 流程里start_offset默认是0
     OffsetT start_offset_;
    public:
     Neighborhood(NodeID_ n, DestID_** g_index, OffsetT start_offset) :
@@ -112,6 +113,7 @@ class CSRGraph {
       start_offset_ = std::min(start_offset, max_offset);
     }
     typedef DestID_* iterator;
+    //TODO:g_index_是什么？
     iterator begin() { return g_index_[n_] + start_offset_; }
     iterator end()   { return g_index_[n_+1]; }
   };
@@ -212,6 +214,7 @@ class CSRGraph {
   }
 
   Neighborhood out_neigh(NodeID_ n, OffsetT start_offset = 0) const {
+    //bfs 在获得Neighborhood后，会调用Neighborhood的迭代器迭代所有邻居。所以重点看看迭代器的实现
     return Neighborhood(n, out_index_, start_offset);
   }
 
@@ -242,10 +245,12 @@ class CSRGraph {
   static DestID_** GenIndex(const pvector<SGOffset> &offsets, DestID_* neighs) {
     NodeID_ length = offsets.size();
     DestID_** index = new DestID_*[length];
-    printf("index %p\n",index);
-    printf("index end %p\n",index+length);
+    printf("  index %p\n",index);
+    printf("  index end %p\n",index+length);
     #pragma omp parallel for
+    //由前面的代码可知，offset是每个点的出度的前缀累加和，因此length其实是点的数量。
     for (NodeID_ n=0; n < length; n++)
+    //neighs是一个数组的指针，offsets[n]是前n-1个点的出度之和。neighs数组初始化时，长度是所有点出度的总和。index是一个指针数组，数组的每一个元素都是指针，这些指针指向的是neighs数组，不过地址是跳着指向的。例如：index[2]=neight + offset[2],中间跳过的地址正好是出度的累积和。
       index[n] = neighs + offsets[n];
     return index;
   }

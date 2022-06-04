@@ -29,8 +29,8 @@ class Bitmap {
   }
 
   void printAddress(){
-    printf("Bitmap start: %p\n",start_);
-    printf("Bitmap end: %p\n",end_);
+    printf("  Bitmap start: %p\n",start_);
+    printf("  Bitmap end: %p\n",end_);
   }
 
   ~Bitmap() {

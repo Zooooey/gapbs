@@ -43,6 +43,7 @@ class BuilderBase {
   const CLBase &cli_;
   bool symmetrize_;
   bool needs_weights_;
+  //我们跑的bfs in_place==false,默认就是false,除非命令行指定-m
   bool in_place_ = false;
   int64_t num_nodes_ = -1;
 
@@ -77,14 +78,19 @@ class BuilderBase {
     return max_seen;
   }
 
+//bfs: 无向图记录每个点的出度，数组下标是点的id，数组的值是点的出度
   pvector<NodeID_> CountDegrees(const EdgeList &el, bool transpose) {
+    //构造一个数组，长度是num_nodes，填充0
     pvector<NodeID_> degrees(num_nodes_, 0);
     #pragma omp parallel for
     for (auto it = el.begin(); it < el.end(); it++) {
       Edge e = *it;
+      //我们的bfs测试里symmetrize_==true
       if (symmetrize_ || (!symmetrize_ && !transpose))
+      //边列表里u是起点，v是终点，这里把边列表里的起点在数组degree对应位置+1。所以这里是在记录出度
         fetch_and_add(degrees[e.u], 1);
       if ((symmetrize_ && !in_place_) || (!symmetrize_ && transpose))
+      //对终点的vertex，也设置出度。说白了这是个无向图。
         fetch_and_add(degrees[(NodeID_) e.v], 1);
     }
     return degrees;
@@ -102,10 +108,15 @@ class BuilderBase {
     return sums;
   }
 
+  //返回degree的前缀累加数组，例如prefix[1]=degree[0]+degree[1]，以此类推
   static
   pvector<SGOffset> ParallelPrefixSum(const pvector<NodeID_> &degrees) {
-    const size_t block_size = 1<<20;
+    const size_t block_size = 1<<20;//1M
+    //block_size是1M大小，block_size加上degree size(其实就是点的数量)，除以block size就得到block的数量。
+    //所以我猜测这个block是用来存储这些degree的。
     const size_t num_blocks = (degrees.size() + block_size - 1) / block_size;
+    //构造一个num_blocks大小的pvector。SGOffset是一个int64
+    //这里把degree数组分为n个block，然后把一个block里的所有degree累加起来存到local_sums里。
     pvector<SGOffset> local_sums(num_blocks);
     #pragma omp parallel for
     for (size_t block=0; block < num_blocks; block++) {
@@ -115,6 +126,7 @@ class BuilderBase {
         lsum += degrees[i];
       local_sums[block] = lsum;
     }
+    //bulk_prefix把local_sums里的值做了个前缀累加，例如:bulk_prefix[1]=local_sums[0],bulck_prefix[2]=local_sums[0]+local_sums[1]
     pvector<SGOffset> bulk_prefix(num_blocks+1);
     SGOffset total = 0;
     for (size_t block=0; block < num_blocks; block++) {
@@ -122,6 +134,7 @@ class BuilderBase {
       total += local_sums[block];
     }
     bulk_prefix[num_blocks] = total;
+    //和bulk_prefix类似，只是粒度更小，到达了degree级别。
     pvector<SGOffset> prefix(degrees.size() + 1);
     #pragma omp parallel for
     for (size_t block=0; block < num_blocks; block++) {
@@ -302,15 +315,21 @@ class BuilderBase {
     - Allocate storage and set points according to offsets (GenIndex)
     - Copy edges into storage
   */
+ //bfs里这个transpose==false
   void MakeCSR(const EdgeList &el, bool transpose, DestID_*** index,
                DestID_** neighs) {
     pvector<NodeID_> degrees = CountDegrees(el, transpose);
+    //offset[1]=degree[0],offset[2]=degree[1]+degree[2]
     pvector<SGOffset> offsets = ParallelPrefixSum(degrees);
+    //这个数组的大小是offsets[num_nodes],也就是整个graph出度的总和
     *neighs = new DestID_[offsets[num_nodes_]];
+    printf("  neighs start address:%p\n",*neighs);
+    printf("  neighs end address:%p\n",*neighs + offsets[num_nodes_]);
     *index = CSRGraph<NodeID_, DestID_>::GenIndex(offsets, *neighs);
     #pragma omp parallel for
     for (auto it = el.begin(); it < el.end(); it++) {
       Edge e = *it;
+      //e.u是起点，offset[e.u]是小于该点id号的所有点的出度累加和。TODO:这是什么意思，为什么出度的累加和可以作为下标？并且这个neighs的值是什么意思？
       if (symmetrize_ || (!symmetrize_ && !transpose))
         (*neighs)[fetch_and_add(offsets[e.u], 1)] = e.v;
       if (symmetrize_ || (!symmetrize_ && transpose))
@@ -331,16 +350,22 @@ class BuilderBase {
     //needs_weights是在初始化Cli时赋值的，只有当NodeID的类型不等于DestID时才是true。因为
     //bfs并没有显式指定任何类型，这里无论是NodeID还是DestID，用的都是int，所以need_weights判断不通过。
     if (needs_weights_){
+      //bfs not reach here
       printf("needs_weights");
       Generator<NodeID_, DestID_, WeightT_>::InsertWeights(el);
     }
+    //这个值默认就是false，如果输入命令行的时候不指定不可能是true。
     if (in_place_) {
+      //bfs not reach here
       printf("in_place!\n");
       MakeCSRInPlace(el, &index, &neighs, &inv_index, &inv_neighs);
     } else {
+      //bfs reach here
       printf("no in_place!\n");
       MakeCSR(el, false, &index, &neighs);
+      //我们的bfs场景里，symmetrize就是true
       if (!symmetrize_ && invert) {
+        //bfs not reach here
         printf("not symmetrize_ && invert\n");
         MakeCSR(el, true, &inv_index, &inv_neighs);
       }

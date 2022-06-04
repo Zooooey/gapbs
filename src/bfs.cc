@@ -54,7 +54,7 @@ int64_t BUStep(const Graph &g, pvector<NodeID> &parent, Bitmap &front,
     if (parent[u] < 0) {
       //printf("%p, R, NodeID\n",&u);
       //printf("%p, R, parent\n",&parent+u);
-      //in_neigh是符合某种逻辑的邻居节点
+      //全图找任意点u，如果该点u的入点包含在位图里，front里，那么完成对u的遍历，修改u在parent中的值。并
       for (NodeID v : g.in_neigh(u)) {
         //printf("%p, R, NodeID\n",&v);
         if (front.get_bit(v)) {
@@ -85,14 +85,14 @@ int64_t TDStep(const Graph &g, pvector<NodeID> &parent,
       //ccy:读取点id
       NodeID u = *q_iter;
       //printf("%p, R, NodeID\n",&u);
-      //ccy:遍历该点所有的邻居，也就是读取这些邻居点。
       for (NodeID v : g.out_neigh(u)) {
+        //u是当前要遍历的点，v是该点的邻居。
         //printf("%p, R, NodeID\n",&v);
-        //ccy:parent被读取，这里是为了获取邻居点v的出度
+        //读取邻居点v的parent值，也就是其度。
         NodeID curr_val = parent[v];
-        //printf("%p, R, parent\n",parent[v]);
+        //未完成遍历的点的parent值curr_val是一个负数，负数的绝对值是它的度。
         if (curr_val < 0) {
-          //修改parent，标明该点已经被遍历（未被遍历是负数，遍历后是该点的值？）
+          //遍历该点后，parent的值修改为u，也就是其入边点的NodeId，这里应该是想注明这个点是被u给遍历了。
           if (compare_and_swap(parent[v], curr_val, u)) {
             //ccy:遍历该点完成，点被访问，推入局部队列。
             lqueue.push_back(v);
@@ -137,11 +137,10 @@ void BitmapToQueue(const Graph &g, const Bitmap &bm,
 }
 
 pvector<NodeID> InitParent(const Graph &g) {
-  pvector<NodeID> parent(g.num_nodes());
   #pragma omp parallel for
+  pvector<NodeID> parent(g.num_nodes());
   for (NodeID n=0; n < g.num_nodes(); n++){
       parent[n] = g.out_degree(n) != 0 ? -g.out_degree(n) : -1;
-      //printf("%p, W, parent\n",&parent+n);
     }
   return parent;
 }
@@ -151,11 +150,11 @@ pvector<NodeID> DOBFS(const Graph &g, NodeID source, int alpha = 15,
   PrintStep("Source", static_cast<int64_t>(source));
   Timer t;
   t.Start();
-  printf("Graph : %p\n",&g);
-  
   //初始化node数量的pvector
   pvector<NodeID> parent = InitParent(g);
+  printf("------- parent vecotr messge begin --------\n");
   parent.printAddress();
+  printf("------- parent vecotr messge end -----------\n");
   t.Stop();
   PrintStep("i", t.Seconds());
   //这个source就是bfs的起点，是随机传进来的。
@@ -164,7 +163,9 @@ pvector<NodeID> DOBFS(const Graph &g, NodeID source, int alpha = 15,
   //printf("%p, W, parent\n",&parent+source);
   //这个滑动队列
   SlidingQueue<NodeID> queue(g.num_nodes());
+  printf("------- parent global queue messge begin --------\n");
   queue.printAddress();
+  printf("------- parent global queue begin --------\n");
   //先把这个根节点push到queue里
   //printf("%p, R, NodeID\n",&source);
   queue.push_back(source);

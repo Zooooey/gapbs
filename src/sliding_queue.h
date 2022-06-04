@@ -40,8 +40,8 @@ class SlidingQueue {
   }
 
   void printAddress(){
-    printf("queue start: %p\n",&shared);
-    printf("queue end: %p\n",&shared+siz);
+    printf("  queue start: %p\n",&shared);
+    printf("  queue end: %p\n",&shared+siz);
   }
 
   ~SlidingQueue() {
