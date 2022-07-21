@@ -401,8 +401,12 @@ class BuilderBase {
     }
     if (in_place_)
       return g;
-    else
-      return SquishGraph(g);
+    else{
+		printf("SquishGraph: ---- do not record memory below ----\n");
+       g = SquishGraph(g);
+		printf("SquishGraph: ---- do not record memory end ----\n");
+		return g;
+		}
   }
 
   // Relabels (and rebuilds) graph by order of decreasing degree

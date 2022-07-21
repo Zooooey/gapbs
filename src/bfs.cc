@@ -137,8 +137,8 @@ void BitmapToQueue(const Graph &g, const Bitmap &bm,
 }
 
 pvector<NodeID> InitParent(const Graph &g) {
-  #pragma omp parallel for
   pvector<NodeID> parent(g.num_nodes());
+  #pragma omp parallel for
   for (NodeID n=0; n < g.num_nodes(); n++){
       parent[n] = g.out_degree(n) != 0 ? -g.out_degree(n) : -1;
     }
