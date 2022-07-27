@@ -8,6 +8,7 @@
 #include <cinttypes>
 
 #include "platform_atomics.h"
+#include <util.h>
 
 
 /*
@@ -29,8 +30,10 @@ class Bitmap {
   }
 
   void printAddress(){
-    printf("  Bitmap start: %p\n",start_);
-    printf("  Bitmap end: %p\n",end_);
+    print_address("  Bitmap start", start_);
+    print_address("  Bitmap end", end_);
+    // printf("  Bitmap start: %p\n",start_);
+    // printf("  Bitmap end: %p\n",end_);
   }
 
   ~Bitmap() {

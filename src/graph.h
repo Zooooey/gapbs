@@ -245,8 +245,10 @@ class CSRGraph {
   static DestID_** GenIndex(const pvector<SGOffset> &offsets, DestID_* neighs) {
     NodeID_ length = offsets.size();
     DestID_** index = new DestID_*[length];
-    printf("  index %p\n",index);
-    printf("  index end %p\n",index+length);
+    print_address(" index start", index);
+    print_address(" index end", index+length);
+    // printf("  index %p\n",index);
+    // printf("  index end %p\n",index+length);
     #pragma omp parallel for
     //由前面的代码可知，offset是每个点的出度的前缀累加和，因此length其实是点的数量。
     for (NodeID_ n=0; n < length; n++)

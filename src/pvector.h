@@ -5,6 +5,7 @@
 #define PVECTOR_H_
 
 #include <algorithm>
+#include <util.h>
 
 
 /*
@@ -33,8 +34,10 @@ class pvector {
   }
 
   void printAddress(){
-    printf("  pvector start address:%p\n",start_);
-    printf("  pvector end address:%p\n",end_size_);
+    print_address(" pvector start address", start_);
+    print_address(" pvector end address", end_size_);
+    // printf("  pvector start address:%p\n",start_);
+    // printf("  pvector end address:%p\n",end_size_);
   }
 
   pvector(size_t num_elements, T_ init_val) : pvector(num_elements) {
