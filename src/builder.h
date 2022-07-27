@@ -258,10 +258,10 @@ public:
     { // not going to symmetrize so no need to add edges
       size_t new_size = num_edges * sizeof(DestID_);
       *neighs = static_cast<DestID_ *>(std::realloc(*neighs, new_size));
-      print_address("neights start", *neighs);
+      print_address("neights start", (unsigned long)(void*)*neighs);
       //printf("neights start%p\n", *neighs);
       //printf("neights end%p\n", *neighs + new_size);
-      print_address("neights end", *neighs + new_size);
+      print_address("neights end", (unsigned long)(void*)*neighs + new_size);
       *index = CSRGraph<NodeID_, DestID_>::GenIndex(offsets, *neighs);
       if (invert)
       { // create inv_neighs & inv_index for incoming edges
@@ -270,8 +270,8 @@ public:
         unsigned long phy_addr;
         // printf("inv_neighs start:%p\n", *inv_neighs);
         // printf("inv_neighs end :%p\n", *inv_neighs + inoffsets[num_nodes_]);
-        print_address("inv_neighs start", *inv_neighs);
-        print_address("inv_neighs end", *inv_neighs + inoffsets[num_nodes_]);
+        print_address("inv_neighs start", (unsigned long)(void*)*inv_neighs);
+        print_address("inv_neighs end", (unsigned long)(void*)*inv_neighs + inoffsets[num_nodes_]);
         *inv_index = CSRGraph<NodeID_, DestID_>::GenIndex(inoffsets,
                                                           *inv_neighs);
         for (NodeID_ u = 0; u < num_nodes_; u++)
@@ -310,8 +310,8 @@ public:
       }
       size_t newsize = (offsets[num_nodes_] * sizeof(DestID_));
       *neighs = static_cast<DestID_ *>(std::realloc(*neighs, newsize));
-      print_address("neights start", *neighs);
-      print_address("neights end", *neighs + newsize);
+      print_address("neights start", (unsigned long)(void*)*neighs);
+      print_address("neights end", (unsigned long)(void*)*neighs + newsize);
       // printf("neights start%p\n", *neighs);
       // printf("neights end%p\n", *neighs + newsize);
       if (*neighs == nullptr)
@@ -372,8 +372,8 @@ public:
     pvector<SGOffset> offsets = ParallelPrefixSum(degrees);
     //这个数组的大小是offsets[num_nodes],也就是整个graph出度的总和
     *neighs = new DestID_[offsets[num_nodes_]];
-    print_address(" neighs start address", *neighs);
-    print_address(" neighs end address", *neighs + offsets[num_nodes_]);
+    print_address(" neighs start address",(unsigned long)(void*)*neighs);
+    print_address(" neighs end address", (unsigned long)(void*)*neighs + offsets[num_nodes_]);
     // printf("  neighs start address:%p\n", *neighs);
     // printf("  neighs end address:%p\n", *neighs + offsets[num_nodes_]);
     *index = CSRGraph<NodeID_, DestID_>::GenIndex(offsets, *neighs);

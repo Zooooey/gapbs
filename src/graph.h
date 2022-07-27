@@ -245,8 +245,8 @@ class CSRGraph {
   static DestID_** GenIndex(const pvector<SGOffset> &offsets, DestID_* neighs) {
     NodeID_ length = offsets.size();
     DestID_** index = new DestID_*[length];
-    print_address(" index start", index);
-    print_address(" index end", index+length);
+    print_address(" index start", (unsigned long)(void*)index);
+    print_address(" index end", (unsigned long)(void*)index+length);
     // printf("  index %p\n",index);
     // printf("  index end %p\n",index+length);
     #pragma omp parallel for

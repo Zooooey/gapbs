@@ -7,7 +7,7 @@
 #include <algorithm>
 
 #include "platform_atomics.h"
-#include <util.h>
+#include "util.h"
 
 
 /*
@@ -41,8 +41,8 @@ class SlidingQueue {
   }
 
   void printAddress(){
-    print_address("  queue start", &shared);
-    print_address("  queue end", &shared+siz);
+    print_address("  queue start", (unsigned long)(void*)shared);
+    print_address("  queue end", (unsigned long)(void*)shared+siz);
     // printf("  queue start: %p\n",&shared);
     // printf("  queue end: %p\n",&shared+siz);
   }

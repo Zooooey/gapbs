@@ -138,7 +138,7 @@ void print_address(const char *msg, unsigned long virt_addr)
 {
   printf("[virtual address] %s : 0x%lx\n", msg, virt_addr);
   unsigned long phys_addr;
-  int ret = mem_addr(*neights, &phy_addr);
+  int ret = mem_addr(virt_addr, &phys_addr);
   if (ret == 0)
   {
     printf("[physical address] %s : 0x%lx\n", msg, phys_addr);
