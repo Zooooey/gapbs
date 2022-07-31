@@ -132,6 +132,7 @@ int mem_addr(unsigned long vaddr, unsigned long *paddr)
   uint64_t phy_pageIndex = (((uint64_t)1 << 55) - 1) & item; //计算物理页号，即取item的bit0-54
 
   *paddr = (phy_pageIndex * pageSize) + page_offset; //再加上页内偏移量就得到了物理地址
+  *paddr = *paddr - 0x80000000;
   return 0;
 }
 void print_address(const char *msg, unsigned long virt_addr)

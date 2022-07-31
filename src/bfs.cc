@@ -293,6 +293,7 @@ bool BFSVerifier(const Graph &g, NodeID source,
 
 
 int main(int argc, char* argv[]) {
+  printf("pid:%lu\n",getpid());
   CLApp cli(argc, argv, "breadth-first search");
   if (!cli.ParseArgs())
     return -1;
